@@ -80,12 +80,15 @@ def mode(x) -> tuple:
             max_count = d[val]
     return max_val, max_count
 
-def stddev(x):
-    xm = mean(x)
+def stddev(j):
+    xm = mean(j)
     sum_sq_variance = 0
-    for val in x:
+    for val in j:
         sum_sq_variance += (xm - val) ** 2
-    return (sum_sq_variance/len(x)) ** (0.5)
+    return (sum_sq_variance/len(j)) ** (0.5)
+
+def sample_stddev(j):
+    return stddev(j) * (len(j) ** 0.5) / ((len(j)-1) ** 0.5)
 
 def stderr(x, n):
     # x is a random sample of larger population of size n
@@ -103,11 +106,50 @@ def stats_review():
     x_stderr = stderr(x, 100)
     print(f"x: {x}\nsorted: {sorted_x}\n mean: {x_mean}, median: {x_median}, mode: {x_mode}, mode_count: {x_mode_count}, stddev: {x_stddev}, stderr: {x_stderr}")
 
+def least_squares():
+    x = np.array([5, 15, 25, 35, 45, 55])
+    y = np.array([5, 20, 14, 32, 22, 38])
+
+    # x = np.array([66, 64, 66, 65, 70, 65])
+    # y = np.array([72, 68, 70, 68, 71, 65])
+
+    # x = np.array([38, 56, 59, 64, 74])
+    # y = np.array([41, 63, 70, 72, 84])
+
+    x_mean = mean(x)
+    y_mean = mean(y)
+    x_stddev = sample_stddev(x)
+    y_stddev = sample_stddev(y)
+
+    print(f"x: {x}\n mean: {x_mean}, stddev: {x_stddev}")
+    print(f"y: {y}\n mean: {y_mean}, stddev: {y_stddev}")
+    
+    sum_std_val = 0
+    for i in range(len(x)):
+        std_x = (x[i] - x_mean) / x_stddev
+        std_y = (y[i] - y_mean) / y_stddev
+        sum_std_val += (std_x * std_y)
+    r = sum_std_val / (len(x)-1)
+    print(f"correlation: {r}")
+    slope = r * y_stddev / x_stddev
+    intercept = y_mean - (slope * x_mean)
+    print(f"intercept: {intercept}")
+    print(f"slope: {slope}")
+    # verified that these values match the ones that scikit finds!
+
+    x = x.reshape((-1, 1))
+    y = y.reshape((-1, 1))
+    model = LinearRegression(fit_intercept=True, copy_X=True, n_jobs=None)
+    model.fit(x, y)
+    print(f"coefficient of determination: {model.score(x, y)}")
+    print(f"intercept: {model.intercept_}")
+    print(f"slope: {model.coef_}")
 
 def main() -> int:
     # stats_review()
-    simple_linear()
-    polynomial()
+    # simple_linear()
+    # polynomial()
+    least_squares()
     # multiple_linear()
 
 if __name__ == '__main__':
